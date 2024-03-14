@@ -1,0 +1,44 @@
+{
+  "name": "babel-plugin-auto-webp",
+  "version": "0.0.1",
+  "description": "require图片转换为 supportWebp ? 'webp' : '原格式' ",
+  "main": "index.js",
+  "scripts": {
+    "unit": "node --test index.test.js",
+    "test": "npm run unit && eslint .",
+    "release": "npm run test && node scripts/release",
+    "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@babel/core": "^7.24.0",
+    "@babel/preset-env": "^7.24.0",
+    "conventional-changelog": "^5.1.0",
+    "conventional-changelog-cli": "^4.1.0",
+    "core-js": "^3.36.0",
+    "eslint": "^8.57.0",
+    "execa": "^8.0.1",
+    "inquirer": "^9.2.16",
+    "read-package": "^1.0.2",
+    "read-pkg": "^9.0.1",
+    "semver": "^7.6.0",
+    "write-pkg": "^7.0.0"
+  },
+  "browserslist": [
+    "Chrome >= 47",
+    "iOS >= 1"
+  ],
+  "eslintConfig": {
+    "parserOptions": {
+      "ecmaVersion": "latest"
+    },
+    "env": {
+      "node": true,
+      "es6": true
+    },
+    "extends": [
+      "eslint:recommended"
+    ]
+  }
+}
