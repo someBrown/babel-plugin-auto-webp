@@ -1,6 +1,6 @@
 {
   "name": "babel-plugin-auto-webp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "require图片转换为 supportWebp ? 'webp' : '原格式' ",
   "main": "index.js",
   "scripts": {
