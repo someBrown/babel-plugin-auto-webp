@@ -2,9 +2,17 @@ const babel = require("@babel/core");
 const plugin = require("./index.js");
 const { equal } = require("node:assert");
 const { test } = require("node:test");
+const supportExt = [".png", ".jpg", ".jpeg"];
+const childNodeType = {
+  ConditionalExpression: true,
+  TemplateLiteral: false,
+  StringLiteral: true,
+};
 
 async function run(input, output) {
-  const { code } = babel.transform(input, { plugins: [plugin] });
+  const { code } = babel.transform(input, {
+    plugins: [[plugin, { supportExt, childNodeType }]],
+  });
   equal(code.trim(), output.trim());
 }
 
@@ -79,7 +87,7 @@ test("表达式中包含ext_1", async () => {
   );
 });
 
-test("表达式中包含ext_2", async () => {
+test("表达式中包含ext_2并且是模板字符串", async () => {
   await run(
     "require(`./png_${index.png}.png`)",
     "require(window.isSupportWebp ? `./png_${index.png}.webp` : `./png_${index.png}.png`);"
