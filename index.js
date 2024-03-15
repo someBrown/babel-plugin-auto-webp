@@ -1,9 +1,9 @@
-const IGNORE_COMMENT = "webp-ignore";
-const supportExt = [".png", ".jpg", ".jpeg"];
-
 const weakSet = new WeakSet();
 
 let t = null;
+let supportExt;
+let ignore_comment;
+let childNodeType;
 
 const replacePath = (path) => {
   for (const ext of supportExt) {
@@ -20,14 +20,17 @@ const shouldSkipByPath = (maybeHasExt) => {
   // 根据文件类型判断
   maybeHasExt = [].concat(maybeHasExt);
   let skip = true;
-  for (const ext of supportExt) {
-    for (const maybeExt of maybeHasExt) {
-      const reg = new RegExp(`\\${ext}`);
-      if (reg.test(maybeExt)) {
-        skip = false;
-        break;
-      }
-    }
+  // 有支持的后缀就不跳过
+  if (
+    maybeHasExt.some((item) =>
+      supportExt.some((ext) => new RegExp(`\\${ext}`).test(item))
+    )
+  ) {
+    skip = false;
+  }
+  // query带有 inline 的跳过 会被webpack转成 base64
+  if (maybeHasExt.some((item) => item.includes("?inline"))) {
+    skip = true;
   }
   return skip;
 };
@@ -35,14 +38,16 @@ const shouldSkipByPath = (maybeHasExt) => {
 const shouldSkipByComment = (node) => {
   let shouldIgnore = false;
   if (node && node.trailingComments) {
-    node.trailingComments.forEach((comment) => {
-      if (
-        comment.value === IGNORE_COMMENT ||
-        comment.value.includes(IGNORE_COMMENT)
-      ) {
-        shouldIgnore = true;
-      }
-    });
+    if (
+      node.trailingComments.some((comment) => {
+        return (
+          comment.value === ignore_comment ||
+          comment.value.includes(ignore_comment)
+        );
+      })
+    ) {
+      shouldIgnore = true;
+    }
   }
   return shouldIgnore;
 };
@@ -87,11 +92,14 @@ const processChild = (node) => {
     return node;
   }
   let newNode = node;
-  if (t.isStringLiteral(node)) {
+  if (t.isStringLiteral(node) && childNodeType.StringLiteral) {
     newNode = handleStringLiteral(node);
-  } else if (t.isTemplateLiteral(node)) {
+  } else if (t.isTemplateLiteral(node) && childNodeType.TemplateLiteral) {
     newNode = handleTemplateLiteral(node);
-  } else if (t.isConditionalExpression(node)) {
+  } else if (
+    t.isConditionalExpression(node) &&
+    childNodeType.ConditionalExpression
+  ) {
     const { consequent, alternate } = node;
     node.consequent = processChild(consequent);
     node.alternate = processChild(alternate);
@@ -101,10 +109,40 @@ const processChild = (node) => {
   return newNode;
 };
 
+const mergeOptions = (state) => ({
+  ignore_comment: "webp-ignore",
+  supportExt: [".png", ".jpg", ".jpeg"],
+  childNodeType: {
+    StringLiteral: true,
+    ConditionalExpression: true,
+    TemplateLiteral: true,
+  },
+  ...state.opts,
+});
+
+const toGlobalOptions = (state) => {
+  const mergedOptions = mergeOptions(state);
+  supportExt = mergedOptions.supportExt;
+  ignore_comment = mergedOptions.ignore_comment;
+  childNodeType = mergedOptions.childNodeType;
+};
+
 module.exports = function ({ types }) {
   t = types;
   return {
     visitor: {
+      Program: {
+        enter(_, state) {
+          toGlobalOptions(state);
+        },
+        exit() {
+          t = null;
+          supportExt = null;
+          ignore_comment = null;
+          childNodeType = null;
+        },
+      },
+
       CallExpression(path) {
         const { callee, arguments: args } = path.node;
         if (t.isIdentifier(callee, { name: "require" }) && args.length === 1) {
