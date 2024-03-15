@@ -5,7 +5,7 @@ const { test } = require("node:test");
 const supportExt = [".png", ".jpg", ".jpeg"];
 const childNodeType = {
   ConditionalExpression: true,
-  TemplateLiteral: false,
+  TemplateLiteral: true,
   StringLiteral: true,
 };
 
