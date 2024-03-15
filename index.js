@@ -39,12 +39,11 @@ const shouldSkipByComment = (node) => {
   let shouldIgnore = false;
   if (node && node.trailingComments) {
     if (
-      node.trailingComments.some((comment) => {
-        return (
+      node.trailingComments.some(
+        (comment) =>
           comment.value === ignoreComment ||
           comment.value.includes(ignoreComment)
-        );
-      })
+      )
     ) {
       shouldIgnore = true;
     }
@@ -120,27 +119,19 @@ const mergeOptions = (state) => ({
   ...state.opts,
 });
 
-const toGlobalOptions = (state) => {
+const toGlobalOptions = (state, types) => {
   const mergedOptions = mergeOptions(state);
   supportExt = mergedOptions.supportExt;
   ignoreComment = mergedOptions.ignoreComment;
   childNodeType = mergedOptions.childNodeType;
+  t = types;
 };
 
 module.exports = function ({ types }) {
-  t = types;
   return {
     visitor: {
-      Program: {
-        enter(_, state) {
-          toGlobalOptions(state);
-        },
-        exit() {
-          t = null;
-          supportExt = null;
-          ignoreComment = null;
-          childNodeType = null;
-        },
+      Program(_, state) {
+        toGlobalOptions(state, types);
       },
 
       CallExpression(path) {
