@@ -2,7 +2,7 @@ const weakSet = new WeakSet();
 
 let t = null;
 let supportExt;
-let ignore_comment;
+let ignoreComment;
 let childNodeType;
 
 const replacePath = (path) => {
@@ -41,8 +41,8 @@ const shouldSkipByComment = (node) => {
     if (
       node.trailingComments.some((comment) => {
         return (
-          comment.value === ignore_comment ||
-          comment.value.includes(ignore_comment)
+          comment.value === ignoreComment ||
+          comment.value.includes(ignoreComment)
         );
       })
     ) {
@@ -110,7 +110,7 @@ const processChild = (node) => {
 };
 
 const mergeOptions = (state) => ({
-  ignore_comment: "webp-ignore",
+  ignoreComment: "webp-ignore",
   supportExt: [".png", ".jpg", ".jpeg"],
   childNodeType: {
     StringLiteral: true,
@@ -123,7 +123,7 @@ const mergeOptions = (state) => ({
 const toGlobalOptions = (state) => {
   const mergedOptions = mergeOptions(state);
   supportExt = mergedOptions.supportExt;
-  ignore_comment = mergedOptions.ignore_comment;
+  ignoreComment = mergedOptions.ignoreComment;
   childNodeType = mergedOptions.childNodeType;
 };
 
@@ -138,7 +138,7 @@ module.exports = function ({ types }) {
         exit() {
           t = null;
           supportExt = null;
-          ignore_comment = null;
+          ignoreComment = null;
           childNodeType = null;
         },
       },
